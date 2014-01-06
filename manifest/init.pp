@@ -15,14 +15,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class continuent__haproxy(
+class continuent_haproxy(
         $haproxyUser                                                                        = 'haproxy',
         $haproxyPassword                                                        = 'secret',
+        $applicationPort   = 3306,
 ) {
-        if $haproxyPassword == 'secret' {
-                warning 'The default haproxy password is being used'
-        }
-        
+
         if ($operatingsystem =~ /(?i:centos|redhat|oel)/) {
                 package { 'xinetd':
                         ensure => present,
@@ -30,6 +28,12 @@ class continuent__haproxy(
                 service { "xinetd":
                         ensure        => "running",
                         enable        => "true",
+                } ->
+                file { "/opt/continuent/share/":
+                  ensure => directory,
+                  owner	=> tungsten,
+                  group	=> tungsten,
+                  mode => 750
                 } ->
                 file { "/opt/continuent/share/connectorchk.sh":
                         owner => tungsten,
@@ -42,24 +46,14 @@ class continuent__haproxy(
                         command => "/bin/echo 'connectorchk                                 9200/tcp' >> /etc/services",
                         notify        => Service['xinetd'],
                 } ->
-                exec { "add-user-map":
-                        onlyif        => "/bin/cat /opt/continuent/tungsten/tungsten-connector/conf/user.map | /bin/grep haproxy|wc -l",
-                        command => "/bin/echo '$haproxyUser $haproxyPassword        $::continuent_install::clusterName'        >> /opt/continuent/tungsten/tungsten-connector/conf/user.map",
-                } ->
                 file { "/etc/xinetd.d/connectorchk":
                         owner => root,
                         group => root,
                         mode => 600,
-                        content => template("continuent_install/connectorchk.erb") ,
+                        content => template("continuent_haporxy/connectorchk.erb") ,
                         notify        => Service['xinetd'],
                 }
 
-                $sqlCheck="select * from mysql.user where user='$::continuent_install::haproxyUser'"
-                $sqlExec="grant usage, replication client        on *.* to $::continuent_install::haproxyUser identified by '$::continuent_install::haproxyPassword';"
-                exec { "create-haproxy-user":
-                        onlyif        => "/usr/bin/mysql -u root -p$::continuent_install::masterPassword -P $::continuent_install::mysqlPort -Be \"$sqlCheck\"|wc -l",
-                        command => "/usr/bin/mysql -u root -p$::continuent_install::masterPassword -P $::continuent_install::mysql::port -Be \"$sqlExec\" ",
-                        require => [Exec['add-service'],Service[$::continuent_install::mysql::serviceName],Exec['set-mysql-password']],
-                }
+
         }
 }
