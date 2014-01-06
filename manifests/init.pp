@@ -21,39 +21,40 @@ class continuent_haproxy(
         $applicationPort   = 3306,
 ) {
 
-        if ($operatingsystem =~ /(?i:centos|redhat|oel)/) {
+        #if ($operatingsystem =~ /(?i:centos|redhat|oel)/) {
                 package { 'xinetd':
                         ensure => present,
-                } ->
+                }
+                exec { "add-service":
+                onlyif        => "/bin/cat /etc/services | /bin/grep connectorchk|wc -l",
+                command => "/bin/echo 'connectorchk                                 9200/tcp' >> /etc/services",
+                notify        => Service['xinetd'],
+                }
                 service { "xinetd":
                         ensure        => "running",
                         enable        => "true",
-                } ->
+                }
                 file { "/opt/continuent/share/":
                   ensure => directory,
                   owner	=> tungsten,
                   group	=> tungsten,
                   mode => 750
-                } ->
+                }
                 file { "/opt/continuent/share/connectorchk.sh":
                         owner => tungsten,
                         group => tungsten,
                         mode => 700,
-                        content => template("continuent_install/connectorchk.sh.erb") ,
-                } ->
-                exec { "add-service":
-                        onlyif        => "/bin/cat /etc/services | /bin/grep connectorchk|wc -l",
-                        command => "/bin/echo 'connectorchk                                 9200/tcp' >> /etc/services",
-                        notify        => Service['xinetd'],
-                } ->
+                        content => template("continuent_haproxy/connectorchk.sh.erb") ,
+                }
+
                 file { "/etc/xinetd.d/connectorchk":
                         owner => root,
                         group => root,
                         mode => 600,
-                        content => template("continuent_haporxy/connectorchk.erb") ,
+                        content => template("continuent_haproxy/connectorchk.erb") ,
                         notify        => Service['xinetd'],
                 }
 
 
-        }
+        #}
 }
