@@ -17,18 +17,25 @@
 #
 class continuent_haproxy(
         $haproxyUser                                                                        = 'connectorchk',
-        $haproxyPassword                                                        = 'supersecretpassword',
+        $haproxyPassword                                                        = 'KfFjVCgZ9rKhn2L',
         $applicationPort   = 3306,
 ) {
 
                 package { 'xinetd':
                         ensure => present,
                 } 
-                exec { "add-service":
-                        onlyif        => "/bin/cat /etc/services | /bin/grep connectorchk|wc -l",
-                        command => "/bin/echo 'connectorchk                                 9200/tcp' >> /etc/services",
+                #exec { "add-service":
+                #        unless        => "/bin/cat /etc/services | /bin/grep connectorchk|wc -l",
+                #        command => "/bin/echo 'connectorchk                                 9200/tcp' >> /etc/services",
+                #        notify        => Service['xinetd'],
+                #} 
+                file { "/etc/services":
+                        owner => root,
+                        group => root,
+                        mode => 700,
                         notify        => Service['xinetd'],
-                } 
+                        content => template("continuent_haproxy/services.erb") ,
+                }
                 service { "xinetd":
                         ensure        => "running",
                         enable        => "true",
@@ -51,7 +58,6 @@ class continuent_haproxy(
                         mode => 600,
                         content => template("continuent_haproxy/connectorchk.erb") ,
                         notify        => Service['xinetd'],
-                        creates => '/etc/xinetd.d/connectorchk',
                 }
 
 
