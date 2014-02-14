@@ -51,6 +51,7 @@ class continuent_haproxy(
                         mode => 600,
                         content => template("continuent_haproxy/connectorchk.erb") ,
                         notify        => Service['xinetd'],
+                        creates => '/etc/xinetd.d/connectorchk',
                 }
 
 
