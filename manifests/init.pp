@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class continuent_haproxy(
+class haproxy(
         $haproxyUser                                                                        = 'connectorchk',
         $haproxyPassword                                                        = 'KfFjVCgZ9rKhn2L',
         $applicationPort   = 3306,
@@ -34,7 +34,7 @@ class continuent_haproxy(
                         group => root,
                         mode => 700,
                         notify        => Service['xinetd'],
-                        content => template("continuent_haproxy/services.erb") ,
+                        content => template("haproxy/services.erb") ,
                 }
                 service { "xinetd":
                         ensure        => "running",
@@ -50,13 +50,13 @@ class continuent_haproxy(
                         owner => tungsten,
                         group => tungsten,
                         mode => 700,
-                        content => template("continuent_haproxy/connectorchk.sh.erb") ,
+                        content => template("haproxy/connectorchk.sh.erb") ,
                 } 
                 file { "/etc/xinetd.d/connectorchk":
                         owner => root,
                         group => root,
                         mode => 600,
-                        content => template("continuent_haproxy/connectorchk.erb") ,
+                        content => template("haproxy/connectorchk.erb") ,
                         notify        => Service['xinetd'],
                 }
 

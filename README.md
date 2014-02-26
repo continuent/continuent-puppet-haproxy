@@ -1,4 +1,4 @@
-continuent_haproxy
+continuent-puppet-haproxy
 ==================
 
-Puppet modules to install the haproxy checkers on a cluster
+Puppet module to install the haproxy checkers on a cluster
