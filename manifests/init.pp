@@ -23,18 +23,11 @@ class haproxy(
 
                 package { 'xinetd':
                         ensure => present,
-                } 
-                #exec { "add-service":
-                #        unless        => "/bin/cat /etc/services | /bin/grep connectorchk|wc -l",
-                #        command => "/bin/echo 'connectorchk                                 9200/tcp' >> /etc/services",
-                #        notify        => Service['xinetd'],
-                #} 
-                file { "/etc/services":
-                        owner => root,
-                        group => root,
-                        mode => 700,
-                        notify        => Service['xinetd'],
-                        content => template("haproxy/services.erb") ,
+                }
+                exec { "add-service-connectorchk":
+                        unless  => "/bin/grep -c connectorchk /etc/services",
+                        command => "/bin/echo 'connectorchk     9200/tcp' >> /etc/services",
+                        notify  => Service['xinetd'],
                 }
                 service { "xinetd":
                         ensure        => "running",
